@@ -26,6 +26,11 @@ class OverviewScreen extends ConsumerWidget {
         title: Text(companyName == null || companyName.isEmpty ? 'Overview' : companyName),
         actions: [
           IconButton(
+            tooltip: 'Search',
+            icon: const Icon(Icons.search),
+            onPressed: () => context.go('/search'),
+          ),
+          IconButton(
             tooltip: 'Refresh',
             icon: const Icon(Icons.refresh),
             onPressed: () => _refreshAll(ref),

@@ -20,6 +20,7 @@ import '../features/projects/projects_screen.dart';
 import '../features/queries/queries_screen.dart';
 import '../features/queries/query_detail_screen.dart';
 import '../features/queries/quick_log_screen.dart';
+import '../features/search/search_screen.dart';
 import '../features/settings/settings_screen.dart';
 import '../features/shell/app_shell.dart';
 import '../supabase/supabase_providers.dart';
@@ -42,6 +43,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             AppShell(location: state.uri.path, child: child),
         routes: [
           GoRoute(path: '/overview', builder: (c, s) => const OverviewScreen()),
+          GoRoute(path: '/search', builder: (c, s) => const SearchScreen()),
           GoRoute(path: '/settings', builder: (c, s) => const SettingsScreen()),
           GoRoute(path: '/clients', builder: (c, s) => const ClientsScreen(), routes: [
             GoRoute(
