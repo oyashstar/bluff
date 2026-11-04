@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../auth/app_user.dart';
 import '../../core/async_value_widget.dart';
 import '../../core/csv_export.dart';
+import '../../core/widgets.dart';
 import 'client_form.dart';
 import 'client_providers.dart';
 
@@ -107,9 +108,7 @@ class _ClientsScreenState extends ConsumerState<ClientsScreen> {
                   itemBuilder: (context, i) {
                     final c = list[i];
                     return ListTile(
-                      leading: CircleAvatar(
-                        child: Text(c.code.length >= 2 ? c.code.substring(0, 2) : c.code),
-                      ),
+                      leading: ClientAvatar(label: c.name),
                       title: Text(c.name),
                       subtitle: Text([c.code, c.segment, c.city].whereType<String>().join(' · ')),
                       trailing: c.amcStatus == null ? null : Text(c.amcStatus!),

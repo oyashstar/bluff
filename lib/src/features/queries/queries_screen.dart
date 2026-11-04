@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../auth/app_user.dart';
 import '../../core/async_value_widget.dart';
 import '../../core/csv_export.dart';
 import '../../core/enums.dart';
@@ -16,6 +17,7 @@ class QueriesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final queries = ref.watch(queryListProvider);
     final filter = ref.watch(queryFilterProvider);
+    final myId = ref.watch(currentAppUserProvider).valueOrNull?.id;
 
     return Scaffold(
       appBar: AppBar(
@@ -46,17 +48,32 @@ class QueriesScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Row(children: [
-              FilterChip(
-                label: const Text('Open only'),
-                selected: filter.openOnly,
-                onSelected: (v) => ref.read(queryFilterProvider.notifier).state =
-                    QueryFilter(openOnly: v, severity: filter.severity, assigneeUserId: filter.assigneeUserId),
-              ),
-              const SizedBox(width: 8),
-              ...[
+          SizedBox(
+            height: 56,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+              children: [
+                FilterChip(
+                  label: const Text('Open only'),
+                  selected: filter.openOnly,
+                  onSelected: (v) => ref.read(queryFilterProvider.notifier).state =
+                      QueryFilter(openOnly: v, severity: filter.severity, assigneeUserId: filter.assigneeUserId),
+                ),
+                const SizedBox(width: 8),
+                if (myId != null) ...[
+                  FilterChip(
+                    avatar: const Icon(Icons.person_outline, size: 18),
+                    label: const Text('My queue'),
+                    selected: filter.assigneeUserId == myId,
+                    onSelected: (v) => ref.read(queryFilterProvider.notifier).state = QueryFilter(
+                      openOnly: filter.openOnly,
+                      severity: filter.severity,
+                      assigneeUserId: v ? myId : null,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 for (final s in QuerySeverity.values)
                   Padding(
                     padding: const EdgeInsets.only(right: 6),
@@ -71,7 +88,7 @@ class QueriesScreen extends ConsumerWidget {
                     ),
                   ),
               ],
-            ]),
+            ),
           ),
           Expanded(
             child: AsyncValueView(
@@ -85,11 +102,25 @@ class QueriesScreen extends ConsumerWidget {
                   itemBuilder: (context, i) {
                     final q = list[i];
                     final scheme = Theme.of(context).colorScheme;
+                    final sla = slaChip(
+                      open: q.status.isOpen,
+                      paused: q.status.pausesClock,
+                      resolutionDue: q.slaResolutionDue,
+                    );
                     return ListTile(
                       leading: SeverityChip(q.severity),
                       title: Text(q.subject, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      subtitle: Text([q.ticketNo, q.clientName, q.moduleName].whereType<String>().join(' · ')),
-                      trailing: StatusChip(q.status.label, color: queryStatusColor(q.status, scheme)),
+                      subtitle: Text([q.ticketNo, q.clientName, q.moduleName, q.assigneeName]
+                          .whereType<String>()
+                          .join(' · ')),
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          StatusChip(q.status.label, color: queryStatusColor(q.status, scheme)),
+                          if (sla != null) ...[const SizedBox(height: 4), sla],
+                        ],
+                      ),
                       onTap: () => context.go('/queries/${q.id}'),
                     );
                   },

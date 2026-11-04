@@ -48,22 +48,41 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 360),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Form(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 380),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(28),
+                child: Form(
               key: _formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: scheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(Icons.track_changes, color: scheme.onPrimaryContainer, size: 30),
+                  ),
+                  const SizedBox(height: 16),
                   Text('Finsys Tracker',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
                       textAlign: TextAlign.center),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 4),
+                  Text('Implementations & client queries',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                      textAlign: TextAlign.center),
+                  const SizedBox(height: 28),
                   TextFormField(
                     controller: _email,
                     keyboardType: TextInputType.emailAddress,
@@ -100,11 +119,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         : const Text('Sign in'),
                   ),
                 ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+              ), // Column
+            ), // Form
+            ), // Padding
+          ), // Card
+          ), // ConstrainedBox
+        ), // SingleChildScrollView
+      ), // Center
+    ); // Scaffold
   }
 }

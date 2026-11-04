@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'src/app.dart';
 import 'src/core/env.dart';
+import 'src/core/theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +24,12 @@ Future<void> main() async {
     publishableKey: Env.supabaseAnonKey,
   );
 
-  runApp(const ProviderScope(child: FinsysTrackerApp()));
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(ProviderScope(
+    overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    child: const FinsysTrackerApp(),
+  ));
 }
 
 class _MisconfiguredApp extends StatelessWidget {

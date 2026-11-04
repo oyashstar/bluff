@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../auth/app_user.dart';
 import '../../core/async_value_widget.dart';
+import '../../core/theme.dart';
+import '../../core/widgets.dart';
 import '../../finance/stub_financial_provider.dart';
 import 'settings_repository.dart';
 
@@ -29,8 +31,13 @@ class SettingsScreen extends ConsumerWidget {
         data: (map) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            const SectionHeader('Appearance'),
+            const _ThemeSelector(),
+            const SizedBox(height: 24),
+            const SectionHeader('ERP financial seam'),
             _SeamCard(erpCode: map[SettingKeys.erpCompanyCode]),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
+            const SectionHeader('Company'),
             _SettingField(
               label: 'Company name',
               value: map[SettingKeys.companyName],
@@ -62,6 +69,24 @@ class SettingsScreen extends ConsumerWidget {
   Future<void> _save(WidgetRef ref, String key, String? value) async {
     await ref.read(settingsRepositoryProvider).set(key, value);
     ref.invalidate(appSettingsProvider);
+  }
+}
+
+class _ThemeSelector extends ConsumerWidget {
+  const _ThemeSelector();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(themeModeProvider);
+    return SegmentedButton<ThemeMode>(
+      segments: const [
+        ButtonSegment(value: ThemeMode.system, icon: Icon(Icons.brightness_auto_outlined), label: Text('System')),
+        ButtonSegment(value: ThemeMode.light, icon: Icon(Icons.light_mode_outlined), label: Text('Light')),
+        ButtonSegment(value: ThemeMode.dark, icon: Icon(Icons.dark_mode_outlined), label: Text('Dark')),
+      ],
+      selected: {mode},
+      showSelectedIcon: false,
+      onSelectionChanged: (s) => ref.read(themeModeProvider.notifier).set(s.first),
+    );
   }
 }
 

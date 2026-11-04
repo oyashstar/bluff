@@ -62,17 +62,21 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final sla = slaChip(
+      open: query.status.isOpen,
+      paused: query.status.pausesClock,
+      resolutionDue: query.slaResolutionDue,
+    );
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(children: [
+            Wrap(spacing: 8, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
               SeverityChip(query.severity),
-              const SizedBox(width: 8),
               StatusChip(query.status.label, color: queryStatusColor(query.status, scheme)),
-              const Spacer(),
+              if (sla != null) sla,
               Text(query.ticketNo, style: Theme.of(context).textTheme.labelLarge),
             ]),
             const SizedBox(height: 12),

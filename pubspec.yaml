@@ -19,6 +19,8 @@ dependencies:
   intl: ^0.19.0
   # Attachment picking for the query screen (bytes -> Supabase Storage).
   file_picker: ^8.1.4
+  # Persist the theme-mode choice (system / light / dark).
+  shared_preferences: ^2.3.3
 
 dev_dependencies:
   flutter_test:

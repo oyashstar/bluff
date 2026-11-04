@@ -28,10 +28,10 @@ String fmtMoney(num? v) => v == null ? '—' : _money.format(v);
 
 /// Health score → colour. Green ≥ 75, amber 50–74, red < 50. Grey when unknown.
 Color healthColor(int? score, ColorScheme scheme) {
-  if (score == null) return scheme.outlineVariant;
-  if (score >= 75) return const Color(0xFF2E7D32);
-  if (score >= 50) return const Color(0xFFF9A825);
-  return const Color(0xFFC62828);
+  if (score == null) return scheme.outline;
+  if (score >= 75) return const Color(0xFF2F9E44);
+  if (score >= 50) return const Color(0xFFF08C00);
+  return const Color(0xFFE03131);
 }
 
 String healthLabel(int? score) {
@@ -43,8 +43,8 @@ String healthLabel(int? score) {
 
 /// Severity → colour for chips.
 Color severityColor(String severity) => switch (severity) {
-      'S1' => const Color(0xFFC62828),
-      'S2' => const Color(0xFFEF6C00),
-      'S3' => const Color(0xFF1565C0),
-      _ => const Color(0xFF616161),
+      'S1' => const Color(0xFFE03131),
+      'S2' => const Color(0xFFF08C00),
+      'S3' => const Color(0xFF1971C2),
+      _ => const Color(0xFF868E96),
     };
