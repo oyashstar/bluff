@@ -1,0 +1,47 @@
+# Finsys Internal Tracker — Supabase CLI config
+# Isolation rule: this is a Supabase project of its own, sharing nothing with
+# any existing Finsys codebase. Schema lives only in migrations/ — never clicked
+# together in the dashboard.
+
+project_id = "finsys-tracker"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 16
+
+[db.migrations]
+# Apply seed.sql after migrations on `supabase db reset`.
+enabled = true
+
+[studio]
+enabled = true
+port = 54323
+
+[auth]
+enabled = true
+# Office screens run on Flutter Web; consultants install the mobile build.
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["io.supabase.finsystracker://login-callback"]
+jwt_expiry = 3600
+enable_signup = false        # users are provisioned by an Admin, not self-signup
+
+[auth.email]
+enable_confirmations = false
+
+[storage]
+enabled = true
+# Attachments (query files, sign-off documents) live in Supabase Storage.
+file_size_limit = "25MiB"
+
+[edge_runtime]
+# Phase 5 only: the read-only Oracle -> client_financial_snapshot sync lives
+# here as a scheduled Edge Function. Nothing in v1.
+enabled = true
