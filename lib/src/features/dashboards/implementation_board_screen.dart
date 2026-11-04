@@ -68,7 +68,7 @@ class _Column extends StatelessWidget {
       width: 280,
       margin: const EdgeInsets.only(right: 12),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withOpacity(0.4),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

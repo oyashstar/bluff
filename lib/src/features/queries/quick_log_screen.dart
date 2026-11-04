@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/async_value_widget.dart';
 import '../../core/enums.dart';
-import '../../core/widgets.dart';
+import '../../core/formatting.dart';
 import '../clients/client_providers.dart';
 import '../modules/module.dart';
 import 'query_providers.dart';
@@ -101,7 +101,7 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
                     ...list.where((c) => !recents.contains(c.id)),
                   ];
                   return DropdownButtonFormField<String>(
-                    value: _clientId,
+                    initialValue: _clientId,
                     isExpanded: true,
                     decoration: const InputDecoration(labelText: 'Client *', border: OutlineInputBorder()),
                     items: [
@@ -125,7 +125,7 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
                     ChoiceChip(
                       label: Text(s.short),
                       selected: _severity == s,
-                      selectedColor: severityColor(s.wire).withOpacity(0.25),
+                      selectedColor: severityColor(s.wire).withValues(alpha: 0.25),
                       onSelected: _busy ? null : (_) => setState(() => _severity = s),
                     ),
                 ],
@@ -148,7 +148,7 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
                 loading: () => const SizedBox.shrink(),
                 error: (_, __) => const SizedBox.shrink(),
                 data: (mods) => DropdownButtonFormField<String>(
-                  value: _moduleId,
+                  initialValue: _moduleId,
                   isExpanded: true,
                   decoration: const InputDecoration(labelText: 'Module (optional)', border: OutlineInputBorder()),
                   items: [
@@ -160,7 +160,7 @@ class _QuickLogScreenState extends ConsumerState<QuickLogScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<QueryChannel>(
-                value: _channel,
+                initialValue: _channel,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Channel', border: OutlineInputBorder()),
                 items: [for (final c in QueryChannel.values) DropdownMenuItem(value: c, child: Text(c.label))],

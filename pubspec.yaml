@@ -5,7 +5,8 @@ version: 0.1.0+1
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
-  flutter: ">=3.24.0"
+  # Uses withValues() and DropdownButtonFormField.initialValue (Flutter 3.35+).
+  flutter: ">=3.35.0"
 
 dependencies:
   flutter:

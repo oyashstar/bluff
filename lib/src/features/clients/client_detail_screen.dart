@@ -6,7 +6,6 @@ import '../../auth/app_user.dart';
 import '../../core/async_value_widget.dart';
 import '../../core/formatting.dart';
 import '../../core/widgets.dart';
-import '../../finance/client_financial_provider.dart';
 import '../../finance/stub_financial_provider.dart';
 import '../projects/project_form.dart';
 import '../projects/project_providers.dart';

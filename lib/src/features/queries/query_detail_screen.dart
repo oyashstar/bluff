@@ -171,7 +171,7 @@ class _Actions extends ConsumerWidget {
             width: 420,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               DropdownButtonFormField<RootCause>(
-                value: rc,
+                initialValue: rc,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Root cause * (mandatory)'),
                 items: [for (final r in RootCause.values) DropdownMenuItem(value: r, child: Text(r.label))],

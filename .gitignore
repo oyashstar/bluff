@@ -4,7 +4,9 @@
 build/
 .flutter-plugins
 .flutter-plugins-dependencies
-pubspec.lock        # app, not a published package — let the lockfile float in dev
+.metadata
+# App, not a published package — let the lockfile float in dev.
+pubspec.lock
 *.iml
 .idea/
 .vscode/

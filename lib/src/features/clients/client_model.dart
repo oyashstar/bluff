@@ -1,4 +1,4 @@
-/// A row of the client table and its contacts.
+// A row of the client table and its contacts.
 
 class Client {
   const Client({

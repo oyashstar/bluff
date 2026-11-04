@@ -52,7 +52,7 @@ class SeverityChip extends StatelessWidget {
     final c = severityColor(severity.wire);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(color: c.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
+      decoration: BoxDecoration(color: c.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
       child: Text(severity.short, style: TextStyle(color: c, fontWeight: FontWeight.bold, fontSize: 12)),
     );
   }
@@ -69,9 +69,9 @@ class StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: c.withOpacity(0.12),
+        color: c.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: c.withOpacity(0.4)),
+        border: Border.all(color: c.withValues(alpha: 0.4)),
       ),
       child: Text(label, style: TextStyle(color: c, fontWeight: FontWeight.w600, fontSize: 12)),
     );

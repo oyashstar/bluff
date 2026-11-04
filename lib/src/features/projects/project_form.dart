@@ -6,7 +6,6 @@ import '../../auth/app_user.dart';
 import '../../core/async_value_widget.dart';
 import '../../core/enums.dart';
 import '../clients/client_providers.dart';
-import 'project_model.dart';
 import 'project_providers.dart';
 import 'project_repository.dart';
 
@@ -93,7 +92,7 @@ class _ProjectFormDialogState extends ConsumerState<_ProjectFormDialog> {
             if (widget.fixedClientId == null)
               clients.when(
                 data: (list) => DropdownButtonFormField<String>(
-                  value: _clientId,
+                  initialValue: _clientId,
                   isExpanded: true,
                   decoration: const InputDecoration(labelText: 'Client *'),
                   items: [for (final c in list) DropdownMenuItem(value: c.id, child: Text(c.name))],
@@ -104,7 +103,7 @@ class _ProjectFormDialogState extends ConsumerState<_ProjectFormDialog> {
               ),
             TextField(controller: _title, decoration: const InputDecoration(labelText: 'Title *')),
             DropdownButtonFormField<ProjectType>(
-              value: _type,
+              initialValue: _type,
               isExpanded: true,
               decoration: const InputDecoration(labelText: 'Type'),
               items: [for (final t in ProjectType.values) DropdownMenuItem(value: t, child: Text(t.label))],
@@ -112,7 +111,7 @@ class _ProjectFormDialogState extends ConsumerState<_ProjectFormDialog> {
             ),
             users.when(
               data: (list) => DropdownButtonFormField<String>(
-                value: _ownerId,
+                initialValue: _ownerId,
                 isExpanded: true,
                 decoration: const InputDecoration(labelText: 'Owner'),
                 items: [for (final u in list) DropdownMenuItem(value: u.id, child: Text(u.displayName))],
@@ -123,7 +122,7 @@ class _ProjectFormDialogState extends ConsumerState<_ProjectFormDialog> {
             ),
             templates.when(
               data: (list) => DropdownButtonFormField<String>(
-                value: _templateId,
+                initialValue: _templateId,
                 isExpanded: true,
                 decoration: const InputDecoration(
                   labelText: 'Stage template',

@@ -73,7 +73,7 @@ class _Bar extends StatelessWidget {
           child: LinearProgressIndicator(
             value: max == 0 ? 0 : value / max,
             minHeight: 14,
-            backgroundColor: color.withOpacity(0.12),
+            backgroundColor: color.withValues(alpha: 0.12),
             valueColor: AlwaysStoppedAnimation(color),
           ),
         ),

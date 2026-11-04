@@ -83,7 +83,7 @@ class _Cell extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: base.withOpacity(intensity * 0.8),
+        color: base.withValues(alpha: intensity * 0.8),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text('$count',

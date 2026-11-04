@@ -17,7 +17,9 @@ Future<void> main() async {
 
   await Supabase.initialize(
     url: Env.supabaseUrl,
-    anonKey: Env.supabaseAnonKey,
+    // The public client key (legacy "anon" key or the newer publishable key).
+    // Still the anon/publishable key only — the service-role key never ships.
+    publishableKey: Env.supabaseAnonKey,
   );
 
   runApp(const ProviderScope(child: FinsysTrackerApp()));
