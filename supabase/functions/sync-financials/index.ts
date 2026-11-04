@@ -38,14 +38,29 @@ interface OutstandingRow {
 }
 
 /// Reads the read-only Oracle view (client-wise outstanding) via the internal
-/// bridge. Returns one row per ERP client code.
-async function fetchFromBridge(): Promise<OutstandingRow[]> {
+/// bridge, scoped to a Finsys ERP company code. The ERP is multi-company, so
+/// the company code selects whose AR to read. Returns one row per ERP client
+/// code.
+async function fetchFromBridge(companyCode: string): Promise<OutstandingRow[]> {
   if (!BRIDGE_URL) throw new Error("ORACLE_BRIDGE_URL not configured");
-  const res = await fetch(BRIDGE_URL, {
+  const url = new URL(BRIDGE_URL);
+  if (companyCode) url.searchParams.set("company_code", companyCode);
+  const res = await fetch(url, {
     headers: BRIDGE_TOKEN ? { Authorization: `Bearer ${BRIDGE_TOKEN}` } : {},
   });
   if (!res.ok) throw new Error(`bridge ${res.status}: ${await res.text()}`);
   return await res.json() as OutstandingRow[];
+}
+
+/// The Finsys ERP company code comes from app_setting (set by an Admin in the
+/// app), falling back to the FINSYS_COMPANY_CODE env var.
+async function resolveCompanyCode(): Promise<string> {
+  const { data } = await db
+    .from("app_setting")
+    .select("value")
+    .eq("key", "erp_company_code")
+    .maybeSingle();
+  return (data?.value as string | null) ?? Deno.env.get("FINSYS_COMPANY_CODE") ?? "";
 }
 
 Deno.serve(async () => {
@@ -61,7 +76,14 @@ Deno.serve(async () => {
       if (c.erp_client_code) byCode.set(String(c.erp_client_code).trim(), c.id);
     }
 
-    const rows = await fetchFromBridge();
+    const companyCode = await resolveCompanyCode();
+    if (!companyCode) {
+      return new Response(
+        JSON.stringify({ error: "no Finsys ERP company code set (app_setting.erp_company_code or FINSYS_COMPANY_CODE)" }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }
+    const rows = await fetchFromBridge(companyCode);
     const asOf = new Date().toISOString().slice(0, 10); // today, IST-agnostic date
 
     const upserts = [];

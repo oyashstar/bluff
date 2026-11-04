@@ -13,6 +13,7 @@ class DashboardsHubScreen extends ConsumerWidget {
     _DashCard('root-cause', Icons.pie_chart_outline, 'Root-cause mix', 'Closed tickets by root cause'),
     _DashCard('client360', Icons.person_search, 'Client 360', 'One row per client'),
     _DashCard('sla', Icons.timer_outlined, 'SLA board', 'Breached & at-risk by assignee'),
+    _DashCard('outstanding', Icons.account_balance_outlined, 'Outstanding', 'Client AR from the ERP seam'),
   ];
 
   @override

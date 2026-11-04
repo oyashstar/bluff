@@ -145,6 +145,39 @@ class SlaBoardRow {
       );
 }
 
+/// v_client_outstanding (AR, from the ERP seam)
+class ClientOutstanding {
+  const ClientOutstanding({
+    required this.clientId,
+    required this.code,
+    required this.name,
+    this.erpClientCode,
+    this.totalOutstanding,
+    this.overdue90Plus,
+    this.asOf,
+  });
+  final String clientId;
+  final String code;
+  final String name;
+  final String? erpClientCode;
+  final num? totalOutstanding;
+  final num? overdue90Plus;
+  final DateTime? asOf;
+
+  bool get isLinked => erpClientCode != null && erpClientCode!.isNotEmpty;
+  bool get hasFigure => totalOutstanding != null;
+
+  factory ClientOutstanding.fromMap(Map<String, dynamic> m) => ClientOutstanding(
+        clientId: m['client_id'] as String,
+        code: (m['code'] as String?) ?? '',
+        name: (m['name'] as String?) ?? '—',
+        erpClientCode: m['erp_client_code'] as String?,
+        totalOutstanding: m['total_outstanding'] as num?,
+        overdue90Plus: m['overdue_90_plus'] as num?,
+        asOf: _ts(m['as_of']),
+      );
+}
+
 /// v_silent_clients (churn signal)
 class SilentClient {
   const SilentClient({

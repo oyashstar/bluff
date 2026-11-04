@@ -40,3 +40,7 @@ final slaBoardProvider = FutureProvider<List<SlaBoardRow>>((ref) async {
 final silentClientsProvider = FutureProvider<List<SilentClient>>((ref) async {
   return ref.watch(dashboardRepositoryProvider).silentClients();
 });
+
+final outstandingProvider = FutureProvider<List<ClientOutstanding>>((ref) async {
+  return ref.watch(dashboardRepositoryProvider).outstanding();
+});

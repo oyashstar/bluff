@@ -9,27 +9,30 @@ import '../features/dashboards/client_360_screen.dart';
 import '../features/dashboards/consultant_load_screen.dart';
 import '../features/dashboards/dashboards_hub_screen.dart';
 import '../features/dashboards/implementation_board_screen.dart';
+import '../features/dashboards/outstanding_screen.dart';
 import '../features/dashboards/query_heatmap_screen.dart';
 import '../features/dashboards/root_cause_mix_screen.dart';
 import '../features/dashboards/sla_board_screen.dart';
 import '../features/dashboards/stalled_screen.dart';
+import '../features/overview/overview_screen.dart';
 import '../features/projects/project_detail_screen.dart';
 import '../features/projects/projects_screen.dart';
 import '../features/queries/queries_screen.dart';
 import '../features/queries/query_detail_screen.dart';
 import '../features/queries/quick_log_screen.dart';
+import '../features/settings/settings_screen.dart';
 import '../features/shell/app_shell.dart';
 import '../supabase/supabase_providers.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/clients',
+    initialLocation: '/overview',
     refreshListenable: _AuthRefresh(ref),
     redirect: (context, state) {
       final session = ref.read(sessionProvider);
       final loggingIn = state.matchedLocation == '/login';
       if (session == null) return loggingIn ? null : '/login';
-      if (loggingIn) return '/clients';
+      if (loggingIn) return '/overview';
       return null;
     },
     routes: [
@@ -38,6 +41,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) =>
             AppShell(location: state.uri.path, child: child),
         routes: [
+          GoRoute(path: '/overview', builder: (c, s) => const OverviewScreen()),
+          GoRoute(path: '/settings', builder: (c, s) => const SettingsScreen()),
           GoRoute(path: '/clients', builder: (c, s) => const ClientsScreen(), routes: [
             GoRoute(
               path: ':id',
@@ -65,6 +70,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             GoRoute(path: 'root-cause', builder: (c, s) => const RootCauseMixScreen()),
             GoRoute(path: 'client360', builder: (c, s) => const Client360Screen()),
             GoRoute(path: 'sla', builder: (c, s) => const SlaBoardScreen()),
+            GoRoute(path: 'outstanding', builder: (c, s) => const OutstandingScreen()),
           ]),
         ],
       ),

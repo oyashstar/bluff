@@ -59,6 +59,13 @@ class DashboardRepository {
     return (rows as List).map((e) => SlaBoardRow.fromMap(e as Map<String, dynamic>)).toList();
   }
 
+  Future<List<ClientOutstanding>> outstanding() async {
+    final rows = await _client.from('v_client_outstanding').select().order('name');
+    return (rows as List)
+        .map((e) => ClientOutstanding.fromMap(e as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<List<SilentClient>> silentClients() async {
     final rows =
         await _client.from('v_silent_clients').select().order('days_silent', ascending: false);

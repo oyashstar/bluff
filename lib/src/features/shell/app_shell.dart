@@ -14,6 +14,7 @@ class AppShell extends ConsumerWidget {
   final String location;
 
   static const _destinations = <_Dest>[
+    _Dest('/overview', Icons.home_outlined, Icons.home, 'Overview'),
     _Dest('/clients', Icons.business_outlined, Icons.business, 'Clients'),
     _Dest('/projects', Icons.dashboard_outlined, Icons.dashboard, 'Projects'),
     _Dest('/quick-log', Icons.bolt_outlined, Icons.bolt, 'Quick log'),
