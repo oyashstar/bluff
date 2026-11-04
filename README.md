@@ -25,18 +25,27 @@ or polish.
 ## Layout
 
 ```
-lib/                         Flutter app
+lib/
   main.dart                  entry; initialises Supabase with the anon key only
-  src/core/env.dart          anon key + URL via --dart-define (no secrets committed)
+  src/core/                  enums, formatting, shared widgets, CSV export, async view
   src/supabase/              the single Supabase client + auth providers
-  src/auth/                  login screen + auth controller
-  src/router/                go_router wired to auth state
-  src/finance/               ClientFinancialProvider seam + v1 stub
-  src/features/shell/        Phase 0 landing shell
+  src/auth/                  login, auth controller, app_user + role providers
+  src/router/                go_router wired to auth state (ShellRoute + all routes)
+  src/finance/               ClientFinancialProvider seam: stub (shipped) + snapshot
+  src/features/
+    shell/                   navigation shell (rail / bottom bar)
+    clients/                 client + contact list / detail / form
+    projects/                project list, detail, stage board, modules
+    queries/                 quick-log, list, detail (status machine), comments, attachments
+    dashboards/              the 7 dashboards, each over one SQL view
+    modules/                 module master reference data
 supabase/
   config.toml                CLI config (isolated project)
   migrations/                ordered schema: enums, tables, audit, RLS, SLA, fns, views, triggers
   seed.sql                   Phase 0 reference data (modules, SLA, stage template, holidays)
+  functions/
+    notify-whatsapp/         Phase 4 — drains notification_outbox to the Meta Cloud API
+    sync-financials/         Phase 5 — Oracle read-only view → client_financial_snapshot
 docs/DECISIONS.md            the five "come back to me with" answers
 test/                        Dart tests
 ```
@@ -62,18 +71,47 @@ flutter run \
 
 For office screens: `flutter run -d chrome --dart-define=...`.
 
-## Where this build stops
+## Phases
 
-This is the **Phase 0 skeleton + Phase 1 schema foundation**: the full data
-model, RLS, audit, SLA calendar, dashboard views, business-logic functions, the
-stage-template seed, and the app shell (login + routing + the financial seam).
+All phases from the brief are implemented:
 
-It stops there on purpose. Per the brief, query management does not start until
-Phase 1 holds real client data, and no fake data is seeded beyond Phase 0. The
-build order for the UI screens, and the open questions for @yashstar, are in
-[docs/DECISIONS.md](docs/DECISIONS.md).
+- **Phase 0 · Skeleton** — Supabase project, schema as checked-in migrations, RLS
+  on every table, Supabase Auth, Flutter shell with login and routing.
+- **Phase 1 · Registry** — client + contact + module + project + stage template +
+  project stage; the stage board renders from `v_project_board`.
+- **Phase 2 · Queries** — quick-log (<20s) screen, query list/detail, the status
+  machine via `fn_transition_query`, the SLA clock with pause, comments, and
+  attachments via Supabase Storage.
+- **Phase 3 · Dashboards** — implementation board, stalled list, consultant load,
+  query heatmap, root-cause mix, client 360 (+ churn), SLA board — each over one
+  SQL view.
+- **Phase 4 · Hardening** — audit trigger on every table, CSV/Excel export on the
+  lists, WhatsApp notifications via the `notify-whatsapp` Edge Function + the
+  `fn_scan_sla_breaches` outbox. (Offline queue is intentionally **not** built —
+  the brief gates it behind a real need; add a Drift queue in front of Supabase
+  if field capture proves essential.)
+- **Phase 5 · ERP seam** — the `sync-financials` Edge Function (read-only Oracle
+  view → `client_financial_snapshot`, all credentials server-side) and a
+  `SnapshotFinancialProvider` that reads our own snapshot table.
 
-> Not yet verified against a live toolchain: Flutter/Dart and the Supabase CLI
-> are not installed in the environment this skeleton was authored in, so the
-> migrations and Dart have not been compiled/applied here. First local step:
-> `supabase db reset` and `flutter analyze`.
+### Isolation held throughout
+
+The shipped financial provider is still the **stub** (constraint #5: "ship the
+stub, do not implement a real one in this build"). The seam machinery exists and
+is deployable, but the app only reads real figures when built with
+`--dart-define=FINANCIAL_SEAM_LIVE=true`, and even then via our own Supabase
+table — never Oracle. No Oracle package or ERP credential is anywhere in the
+Flutter app.
+
+> **Not yet verified against a live toolchain.** Flutter/Dart and the Supabase
+> CLI are not installed in the environment this was authored in, so the Dart has
+> not been compiled and the migrations have not been applied here. First local
+> steps: `flutter pub get && flutter analyze`, then `supabase db reset`. Expect
+> to fix a few small issues on first compile — treat this as a thorough first
+> draft of the whole app, not a battle-tested build.
+
+### Open decisions for @yashstar
+
+Defaults are in place but flagged in [docs/DECISIONS.md](docs/DECISIONS.md):
+which two query states pause the SLA clock, project-level vs per-module sign-off
+gates, and the real holiday list.
