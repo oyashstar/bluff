@@ -98,7 +98,7 @@ class ProjectRepository {
   Future<List<ProjectStage>> stages(String projectId) async {
     final rows = await _client
         .from('project_stage')
-        .select('*, stage_template_item(name, seq, requires_signoff, default_duration_days)')
+        .select('*, stage_template_item(name, seq, requires_signoff, default_duration_days), signoff(signed_on)')
         .eq('project_id', projectId);
     final list = (rows as List)
         .map((e) => ProjectStage.fromMap(e as Map<String, dynamic>))
@@ -140,6 +140,26 @@ class ProjectRepository {
 
   Future<void> recomputeHealth(String projectId) async {
     await _client.rpc('fn_recompute_health', params: {'p_project_id': projectId});
+  }
+
+  /// Record a sign-off against a stage (for a stage whose template item
+  /// requires one). Clears the sign-off-pending drag on the health score.
+  Future<void> addSignoff({
+    required String stageId,
+    required String projectId,
+    String? contactId,
+    DateTime? signedOn,
+    String? remarks,
+    String? documentPath,
+  }) async {
+    await _client.from('signoff').insert({
+      'project_stage_id': stageId,
+      'contact_id': contactId,
+      'signed_on': (signedOn ?? DateTime.now()).toUtc().toIso8601String(),
+      'remarks': remarks,
+      'document_path': documentPath,
+    });
+    await recomputeHealth(projectId);
   }
 
   // --- modules in scope ---

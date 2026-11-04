@@ -142,6 +142,8 @@ class ProjectStage {
     this.actualEnd,
     this.ownerUserId,
     this.blockedReason,
+    this.signedOff = false,
+    this.signedOn,
   });
 
   final String id;
@@ -158,9 +160,18 @@ class ProjectStage {
   final DateTime? actualEnd;
   final String? ownerUserId;
   final String? blockedReason;
+  final bool signedOff;
+  final DateTime? signedOn;
 
   factory ProjectStage.fromMap(Map<String, dynamic> m) {
     final item = (m['stage_template_item'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final signoffs = (m['signoff'] as List?)?.cast<Map<String, dynamic>>() ?? const [];
+    final signed = signoffs.where((s) => s['signed_on'] != null).toList();
+    DateTime? signedOn;
+    for (final s in signed) {
+      final d = DateTime.tryParse('${s['signed_on']}');
+      if (d != null && (signedOn == null || d.isAfter(signedOn))) signedOn = d;
+    }
     return ProjectStage(
       id: m['id'] as String,
       projectId: m['project_id'] as String,
@@ -176,6 +187,8 @@ class ProjectStage {
       actualEnd: _date(m['actual_end']),
       ownerUserId: m['owner_user_id'] as String?,
       blockedReason: m['blocked_reason'] as String?,
+      signedOff: signed.isNotEmpty,
+      signedOn: signedOn,
     );
   }
 }

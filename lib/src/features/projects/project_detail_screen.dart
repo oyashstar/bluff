@@ -7,6 +7,7 @@ import '../../core/async_value_widget.dart';
 import '../../core/enums.dart';
 import '../../core/formatting.dart';
 import '../../core/widgets.dart';
+import '../clients/client_providers.dart';
 import '../modules/module.dart';
 import 'project_model.dart';
 import 'project_providers.dart';
@@ -254,12 +255,35 @@ class _StageBoard extends ConsumerWidget {
                               child: Tooltip(message: 'Sign-off gate', child: Icon(Icons.verified_outlined, size: 16)),
                             ),
                         ]),
-                        subtitle: Text([
-                          s.status.label,
-                          if (s.actualStart != null) 'start ${fmtDateOnly(s.actualStart)}',
-                          if (s.actualEnd != null) 'end ${fmtDateOnly(s.actualEnd)}',
-                          if (s.status == StageStatus.blocked && s.blockedReason != null) 'blocked: ${s.blockedReason}',
-                        ].join(' · ')),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text([
+                              s.status.label,
+                              if (s.actualStart != null) 'start ${fmtDateOnly(s.actualStart)}',
+                              if (s.actualEnd != null) 'end ${fmtDateOnly(s.actualEnd)}',
+                              if (s.status == StageStatus.blocked && s.blockedReason != null) 'blocked: ${s.blockedReason}',
+                            ].join(' · ')),
+                            if (s.requiresSignoff)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4),
+                                child: s.signedOff
+                                    ? StatusChip('Signed off · ${fmtDateOnly(s.signedOn)}',
+                                        color: const Color(0xFF2E7D32))
+                                    : (canEdit && s.status == StageStatus.done)
+                                        ? OutlinedButton.icon(
+                                            onPressed: () => _recordSignoff(context, ref, s),
+                                            icon: const Icon(Icons.verified_outlined, size: 16),
+                                            label: const Text('Record sign-off'),
+                                            style: OutlinedButton.styleFrom(
+                                              visualDensity: VisualDensity.compact,
+                                            ),
+                                          )
+                                        : const StatusChip('Sign-off pending', color: Color(0xFFF9A825)),
+                              ),
+                          ],
+                        ),
+                        isThreeLine: s.requiresSignoff,
                         trailing: canEdit
                             ? PopupMenuButton<StageStatus>(
                                 icon: const Icon(Icons.more_vert),
@@ -294,6 +318,68 @@ class _StageBoard extends ConsumerWidget {
           blockedReason: reason,
         );
     invalidateProject(ref, s.projectId);
+  }
+
+  Future<void> _recordSignoff(BuildContext context, WidgetRef ref, ProjectStage s) async {
+    final contacts = await ref.read(clientContactsProvider(project.clientId).future);
+    if (!context.mounted) return;
+    final remarks = TextEditingController();
+    String? contactId;
+    var signedOn = DateTime.now();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: Text('Sign off: ${s.stageName}'),
+          content: SizedBox(
+            width: 420,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              if (contacts.isNotEmpty)
+                DropdownButtonFormField<String>(
+                  initialValue: contactId,
+                  isExpanded: true,
+                  decoration: const InputDecoration(labelText: 'Signed by (client contact)'),
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('—')),
+                    for (final c in contacts) DropdownMenuItem(value: c.id, child: Text(c.name)),
+                  ],
+                  onChanged: (v) => setState(() => contactId = v),
+                ),
+              Row(children: [
+                Expanded(child: Text('Signed on: ${fmtDateOnly(signedOn)}')),
+                TextButton(
+                  onPressed: () async {
+                    final picked = await showDatePicker(
+                      context: ctx,
+                      initialDate: signedOn,
+                      firstDate: DateTime(signedOn.year - 1),
+                      lastDate: DateTime(signedOn.year + 1),
+                    );
+                    if (picked != null) setState(() => signedOn = picked);
+                  },
+                  child: const Text('Pick'),
+                ),
+              ]),
+              TextField(controller: remarks, decoration: const InputDecoration(labelText: 'Remarks')),
+            ]),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Sign off')),
+          ],
+        ),
+      ),
+    );
+    if (ok == true) {
+      await ref.read(projectRepositoryProvider).addSignoff(
+            stageId: s.id,
+            projectId: s.projectId,
+            contactId: contactId,
+            signedOn: signedOn,
+            remarks: remarks.text.trim().isEmpty ? null : remarks.text.trim(),
+          );
+      invalidateProject(ref, s.projectId);
+    }
   }
 
   Future<String?> _promptReason(BuildContext context) {

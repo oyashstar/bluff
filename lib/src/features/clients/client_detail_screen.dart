@@ -10,6 +10,7 @@ import '../../finance/stub_financial_provider.dart';
 import '../projects/project_form.dart';
 import '../projects/project_providers.dart';
 import '../queries/query_providers.dart';
+import '../touchpoints/touchpoint.dart';
 import 'client_form.dart';
 import 'client_model.dart';
 import 'client_providers.dart';
@@ -23,7 +24,7 @@ class ClientDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final client = ref.watch(clientProvider(clientId));
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
       appBar: AppBar(
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/clients')),
@@ -41,7 +42,13 @@ class ClientDetailScreen extends ConsumerWidget {
         ],
         bottom: const TabBar(
           isScrollable: true,
-          tabs: [Tab(text: 'Overview'), Tab(text: 'Projects'), Tab(text: 'Queries'), Tab(text: 'Contacts')],
+          tabs: [
+            Tab(text: 'Overview'),
+            Tab(text: 'Projects'),
+            Tab(text: 'Queries'),
+            Tab(text: 'Touchpoints'),
+            Tab(text: 'Contacts'),
+          ],
         ),
       ),
       body: AsyncValueView(
@@ -51,6 +58,7 @@ class ClientDetailScreen extends ConsumerWidget {
           _Overview(client: c),
           _Projects(clientId: clientId),
           _Queries(clientId: clientId),
+          _Touchpoints(clientId: clientId),
           _Contacts(clientId: clientId),
         ]),
       ),
@@ -326,6 +334,107 @@ Future<void> _showContactForm(BuildContext context, WidgetRef ref, String client
     ),
   );
   if (saved == true) ref.invalidate(clientContactsProvider(clientId));
+}
+
+class _Touchpoints extends ConsumerWidget {
+  const _Touchpoints({required this.clientId});
+  final String clientId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final touchpoints = ref.watch(clientTouchpointsProvider(clientId));
+    final canEdit = ref.watch(currentRoleProvider).canEditSupport;
+    return Stack(children: [
+      AsyncValueView(
+        value: touchpoints,
+        onRetry: () => ref.invalidate(clientTouchpointsProvider(clientId)),
+        data: (list) {
+          if (list.isEmpty) {
+            return const EmptyState('No touchpoints logged. Logging calls and visits keeps health scores honest.');
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.only(bottom: 80),
+            itemCount: list.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (context, i) {
+              final t = list[i];
+              return ListTile(
+                leading: const Icon(Icons.record_voice_over_outlined),
+                title: Text([t.type ?? 'Touchpoint', if (t.summary != null) t.summary].whereType<String>().join(' — ')),
+                subtitle: Text([
+                  fmtDateTime(t.occurredOn),
+                  if (t.userName != null) t.userName,
+                  if (t.durationMin != null) '${t.durationMin} min',
+                ].whereType<String>().join(' · ')),
+              );
+            },
+          );
+        },
+      ),
+      if (canEdit)
+        Positioned(
+          right: 16,
+          bottom: 16,
+          child: FloatingActionButton.extended(
+            heroTag: 'add-touchpoint',
+            onPressed: () => _showTouchpointForm(context, ref, clientId),
+            icon: const Icon(Icons.add),
+            label: const Text('Log touchpoint'),
+          ),
+        ),
+    ]);
+  }
+}
+
+Future<void> _showTouchpointForm(BuildContext context, WidgetRef ref, String clientId) async {
+  var type = Touchpoint.types.first;
+  final summary = TextEditingController();
+  final duration = TextEditingController();
+  final saved = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setState) => AlertDialog(
+        title: const Text('Log touchpoint'),
+        content: SizedBox(
+          width: 420,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            DropdownButtonFormField<String>(
+              initialValue: type,
+              isExpanded: true,
+              decoration: const InputDecoration(labelText: 'Type'),
+              items: [for (final t in Touchpoint.types) DropdownMenuItem(value: t, child: Text(t))],
+              onChanged: (v) => setState(() => type = v ?? type),
+            ),
+            TextField(controller: summary, maxLines: 2, decoration: const InputDecoration(labelText: 'Summary')),
+            TextField(
+              controller: duration,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Duration (min, optional)'),
+            ),
+          ]),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () async {
+              await ref.read(touchpointRepositoryProvider).create(
+                    clientId: clientId,
+                    type: type,
+                    summary: summary.text.trim().isEmpty ? null : summary.text.trim(),
+                    durationMin: int.tryParse(duration.text.trim()),
+                  );
+              if (ctx.mounted) Navigator.pop(ctx, true);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    ),
+  );
+  if (saved == true) {
+    ref.invalidate(clientTouchpointsProvider(clientId));
+    ref.invalidate(clientProjectsProvider(clientId)); // health may have changed
+  }
 }
 
 class _InfoCard extends StatelessWidget {
