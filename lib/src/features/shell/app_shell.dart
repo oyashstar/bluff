@@ -4,10 +4,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../auth/app_user.dart';
 import '../../auth/auth_controller.dart';
+import '../../core/theme.dart';
+import '../../core/widgets.dart';
 
-/// Persistent chrome around every authenticated screen: a navigation rail on
-/// wide layouts (office screens) and a bottom bar on phones (field). Kept plain
-/// — restyled constantly, per the brief.
+/// Persistent chrome around every authenticated screen: a branded top bar
+/// (Finsys logo + signed-in user), a navigation rail on wide layouts (office
+/// screens) and a bottom bar on phones (field).
 class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.child, required this.location});
   final Widget child;
@@ -33,69 +35,169 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final wide = MediaQuery.sizeOf(context).width >= 760;
     final index = _indexFor(location);
-    final user = ref.watch(currentAppUserProvider).valueOrNull;
 
-    if (wide) {
-      return Scaffold(
-        body: Row(
-          children: [
-            NavigationRail(
+    final content = wide
+        ? Row(
+            children: [
+              NavigationRail(
+                selectedIndex: index,
+                onDestinationSelected: (i) => _go(context, i),
+                labelType: NavigationRailLabelType.all,
+                destinations: [
+                  for (final d in _destinations)
+                    NavigationRailDestination(
+                      icon: Icon(d.icon),
+                      selectedIcon: Icon(d.selectedIcon),
+                      label: Text(d.label),
+                    ),
+                ],
+              ),
+              const VerticalDivider(width: 1),
+              Expanded(child: child),
+            ],
+          )
+        : child;
+
+    return Scaffold(
+      body: Column(
+        children: [
+          _BrandBar(wide: wide),
+          Expanded(child: content),
+        ],
+      ),
+      bottomNavigationBar: wide
+          ? null
+          : NavigationBar(
               selectedIndex: index,
               onDestinationSelected: (i) => _go(context, i),
-              labelType: NavigationRailLabelType.all,
-              leading: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Column(
-                  children: [
-                    const Icon(Icons.track_changes, size: 28),
-                    const SizedBox(height: 4),
-                    Text('Finsys', style: Theme.of(context).textTheme.labelSmall),
-                  ],
-                ),
-              ),
-              trailing: Expanded(
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: IconButton(
-                      tooltip: 'Sign out (${user?.displayName ?? ''})',
-                      icon: const Icon(Icons.logout),
-                      onPressed: () => ref.read(authControllerProvider).signOut(),
-                    ),
-                  ),
-                ),
-              ),
               destinations: [
                 for (final d in _destinations)
-                  NavigationRailDestination(
+                  NavigationDestination(
                     icon: Icon(d.icon),
                     selectedIcon: Icon(d.selectedIcon),
-                    label: Text(d.label),
+                    label: d.label,
                   ),
               ],
             ),
-            const VerticalDivider(width: 1),
-            Expanded(child: child),
+    );
+  }
+}
+
+/// Branded top bar: Finsys logo on the left, signed-in user + theme + sign-out
+/// on the right (mirrors the Finsys ERP top bar).
+class _BrandBar extends ConsumerWidget {
+  const _BrandBar({required this.wide});
+  final bool wide;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final scheme = Theme.of(context).colorScheme;
+    final user = ref.watch(currentAppUserProvider).valueOrNull;
+
+    return Material(
+      color: Theme.of(context).appBarTheme.backgroundColor,
+      elevation: 0,
+      child: Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          border: Border(bottom: BorderSide(color: scheme.outlineVariant)),
+        ),
+        child: Row(
+          children: [
+            const FinsysLogo(height: 30),
+            const SizedBox(width: 12),
+            Container(width: 1, height: 22, color: scheme.outlineVariant),
+            const SizedBox(width: 12),
+            Text('Tracker',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    )),
+            const Spacer(),
+            const _ThemeMenu(),
+            const SizedBox(width: 4),
+            if (user != null) _UserChip(user: user, wide: wide),
+            IconButton(
+              tooltip: 'Sign out',
+              icon: const Icon(Icons.logout),
+              onPressed: () => ref.read(authControllerProvider).signOut(),
+            ),
           ],
         ),
-      );
-    }
+      ),
+    );
+  }
+}
 
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: index,
-        onDestinationSelected: (i) => _go(context, i),
-        destinations: [
-          for (final d in _destinations)
-            NavigationDestination(
-              icon: Icon(d.icon),
-              selectedIcon: Icon(d.selectedIcon),
-              label: d.label,
+class _UserChip extends StatelessWidget {
+  const _UserChip({required this.user, required this.wide});
+  final AppUser user;
+  final bool wide;
+
+  String get _initials {
+    final parts = user.displayName.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty || parts.first.isEmpty) return '?';
+    if (parts.length == 1) {
+      return parts.first.substring(0, parts.first.length >= 2 ? 2 : 1).toUpperCase();
+    }
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(
+            radius: 15,
+            backgroundColor: finsysBlue.withValues(alpha: 0.15),
+            child: Text(_initials,
+                style: const TextStyle(
+                    color: finsysBlue, fontWeight: FontWeight.w700, fontSize: 12)),
+          ),
+          if (wide) ...[
+            const SizedBox(width: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(user.displayName,
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Text(user.role.label,
+                    style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant)),
+              ],
             ),
+          ],
         ],
       ),
+    );
+  }
+}
+
+class _ThemeMenu extends ConsumerWidget {
+  const _ThemeMenu();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(themeModeProvider);
+    final icon = switch (mode) {
+      ThemeMode.light => Icons.light_mode_outlined,
+      ThemeMode.dark => Icons.dark_mode_outlined,
+      ThemeMode.system => Icons.brightness_auto_outlined,
+    };
+    return PopupMenuButton<ThemeMode>(
+      tooltip: 'Theme',
+      icon: Icon(icon),
+      initialValue: mode,
+      onSelected: (m) => ref.read(themeModeProvider.notifier).set(m),
+      itemBuilder: (_) => const [
+        PopupMenuItem(value: ThemeMode.system, child: Text('System')),
+        PopupMenuItem(value: ThemeMode.light, child: Text('Light')),
+        PopupMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+      ],
     );
   }
 }

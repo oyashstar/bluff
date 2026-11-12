@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 
 import '../../auth/app_user.dart';
 import '../../core/formatting.dart';
-import '../../core/theme.dart';
 import '../../core/widgets.dart';
 import '../dashboards/dashboard_providers.dart';
 import '../projects/project_providers.dart';
@@ -32,7 +31,6 @@ class OverviewScreen extends ConsumerWidget {
             icon: const Icon(Icons.search),
             onPressed: () => context.go('/search'),
           ),
-          const _ThemeToggle(),
           IconButton(
             tooltip: 'Refresh',
             icon: const Icon(Icons.refresh),
@@ -147,29 +145,6 @@ class _HeaderCard extends StatelessWidget {
   }
 }
 
-class _ThemeToggle extends ConsumerWidget {
-  const _ThemeToggle();
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final mode = ref.watch(themeModeProvider);
-    final icon = switch (mode) {
-      ThemeMode.light => Icons.light_mode_outlined,
-      ThemeMode.dark => Icons.dark_mode_outlined,
-      ThemeMode.system => Icons.brightness_auto_outlined,
-    };
-    return PopupMenuButton<ThemeMode>(
-      tooltip: 'Theme',
-      icon: Icon(icon),
-      initialValue: mode,
-      onSelected: (m) => ref.read(themeModeProvider.notifier).set(m),
-      itemBuilder: (_) => const [
-        PopupMenuItem(value: ThemeMode.system, child: Text('System')),
-        PopupMenuItem(value: ThemeMode.light, child: Text('Light')),
-        PopupMenuItem(value: ThemeMode.dark, child: Text('Dark')),
-      ],
-    );
-  }
-}
 
 class _Shortcut extends StatelessWidget {
   const _Shortcut({required this.icon, required this.title, required this.subtitle, required this.onTap, this.color});

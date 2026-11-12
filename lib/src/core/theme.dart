@@ -6,22 +6,28 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// component themes keep cards, inputs, chips and nav consistent everywhere so
 /// individual screens stay plain.
 
-const _seed = Color(0xFF3B5BDB); // Finsys indigo
+/// Finsys brand blue, sampled from the ERP UI.
+const finsysBlue = Color(0xFF2F6CB5);
+const _seed = finsysBlue;
 
 ThemeData buildTheme(Brightness brightness) {
-  final scheme = ColorScheme.fromSeed(seedColor: _seed, brightness: brightness);
+  final scheme = ColorScheme.fromSeed(
+    seedColor: _seed,
+    brightness: brightness,
+    primary: brightness == Brightness.light ? finsysBlue : null,
+  );
   final isDark = brightness == Brightness.dark;
 
   return ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
-    scaffoldBackgroundColor: isDark ? scheme.surface : const Color(0xFFF6F7FB),
+    scaffoldBackgroundColor: isDark ? scheme.surface : Colors.white,
     visualDensity: VisualDensity.standard,
     appBarTheme: AppBarTheme(
       centerTitle: false,
       elevation: 0,
       scrolledUnderElevation: 1,
-      backgroundColor: isDark ? scheme.surface : const Color(0xFFF6F7FB),
+      backgroundColor: isDark ? scheme.surface : Colors.white,
       surfaceTintColor: Colors.transparent,
       titleTextStyle: TextStyle(
         color: scheme.onSurface,

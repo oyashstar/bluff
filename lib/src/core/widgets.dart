@@ -2,6 +2,32 @@ import 'package:flutter/material.dart';
 
 import 'enums.dart';
 import 'formatting.dart';
+import 'theme.dart';
+
+/// The Finsys logo for the brand bar. Replace assets/finsys_logo.png with a
+/// clean transparent PNG for best quality; falls back to a wordmark if missing.
+class FinsysLogo extends StatelessWidget {
+  const FinsysLogo({super.key, this.height = 26});
+  final double height;
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'assets/finsys_logo.png',
+      height: height,
+      filterQuality: FilterQuality.high,
+      errorBuilder: (_, __, ___) => Text(
+        'FINSYS',
+        style: TextStyle(
+          fontWeight: FontWeight.w800,
+          color: finsysBlue,
+          letterSpacing: 1.5,
+          fontSize: height * 0.7,
+        ),
+      ),
+    );
+  }
+}
 
 /// A rounded pill: coloured dot + score on a tinted background, with the health
 /// breakdown on hover/long-press.
